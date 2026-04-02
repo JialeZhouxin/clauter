@@ -54,7 +54,7 @@ jobs:
             for f in glob.glob('configs/*.yaml'):
                 with open(f) as fp:
                     yaml.safe_load(fp)
-                print(f'OK: {f}')
+                print('OK:', f)
           "
 
   quick-run:
@@ -73,9 +73,8 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Download MNIST subset
+      - name: Create synthetic test dataset
         run: |
-          # Create a minimal synthetic dataset for smoke test
           python -c "
 import scipy.io
 import numpy as np
@@ -86,16 +85,15 @@ N, d, K = 1000, 64, 10
 X = np.random.randn(N, d).astype(np.float32)
 y = np.random.randint(0, K, size=N).astype(np.int64)
 scipy.io.savemat('data/test.mat', {'data': X, 'label': y})
-print(f'Created test dataset: {N} samples, {d} dims')
+print('Created test dataset:', N, 'samples,', d, 'dims')
           "
 
-      - name: Run quick smoke test (DEC, 1-layer, 10 iters)
+      - name: Run smoke test
         run: |
           python -c "
 import yaml, os, sys
 sys.path.insert(0, os.getcwd())
 
-# Override config for smoke test
 cfg = {
     'seed': 42,
     'dataset': {
@@ -127,11 +125,10 @@ cfg = {
     'output': {'dir': 'outputs/smoke_test'}
 }
 
-import yaml as _yaml
 os.makedirs('configs', exist_ok=True)
 with open('configs/smoke_test.yaml', 'w') as f:
-    _yaml.dump(cfg, f)
+    yaml.dump(cfg, f)
 print('Smoke test config created')
-"
+          "
           python scripts/train_dec_idec.py --config configs/smoke_test.yaml
           echo "Smoke test completed"
