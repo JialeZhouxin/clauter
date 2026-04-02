@@ -1,0 +1,41 @@
+seed: 42
+device: cpu
+
+dataset:
+  source: synthetic   # synthetic | npz
+  name: synthetic
+  # For npz:
+  # path: data/cora.npz
+  num_nodes: 600
+  num_features: 64
+  num_clusters: 6
+
+preprocess:
+  normalize_features: true
+  normalize_adjacency: true
+  add_self_loops: true
+  use_cache: true
+
+model:
+  name: gae_kmeans_baseline
+  hidden_dim: 256
+  embed_dim: 64
+  num_clusters: 6
+  dropout: 0.1
+
+optimizer:
+  lr: 0.001
+  weight_decay: 0.0001
+
+trainer:
+  epochs: 150
+  eval_every: 10
+
+loss:
+  w_rec_x: 1.0
+  w_rec_adj: 1.0
+  w_cluster: 0.1
+
+output:
+  dir: outputs/gae_synthetic_seed42
+  cache_dir: outputs/cache

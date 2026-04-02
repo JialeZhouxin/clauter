@@ -1,0 +1,36 @@
+# DAEGC 预训练配置 (按论文 IJCAI 2019)
+# 阶段1: 预训练图自编码器 (GAE)
+
+seed: 42
+device: cpu
+
+dataset:
+  source: npz
+  name: cora
+  path: data/cora/cora.npz
+
+preprocess:
+  normalize_features: false   # GitHub 实现没有对特征归一化
+  normalize_adjacency: true
+  add_self_loops: true
+  adj_normalize_method: l1
+  use_cache: true
+
+model:
+  name: daegc_pretrain
+  hidden_size: 256            # 论文默认
+  embedding_size: 16           # 论文默认 (GitHub 实现验证可达 ACC=0.704)
+  alpha: 0.2                  # leaky_relu 斜率
+  dropout: 0.0                # 论文未使用 dropout
+
+optimizer:
+  lr: 0.005                   # 论文预训练 lr (Cora 数据集)
+  weight_decay: 0.005         # 5e-3
+
+trainer:
+  epochs: 100                 # 论文预训练 100 epochs
+  eval_every: 5
+
+output:
+  dir: outputs/daegc_pretrain_cora
+  cache_dir: outputs/cache

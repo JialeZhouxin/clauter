@@ -1,0 +1,137 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest>=7.0
+
+      - name: Python syntax check
+        run: |
+          python -m py_compile scripts/train_dec_idec.py
+          python -m py_compile deepclust_base/models/dec.py
+          python -m py_compile deepclust_base/models/idec.py
+
+      - name: Import check
+        run: |
+          python -c "
+            from deepclust_base.utils.metrics import clustering_accuracy
+            from deepclust_base.utils.logger import write_history_csv
+            from deepclust_base.utils.io import load_config, save_json
+            from deepclust_base.utils.checkpoint import save_checkpoint, load_checkpoint
+            from deepclust_base.utils.seed import set_global_seed
+            from deepclust_base.models.dec import DEC
+            from deepclust_base.models.idec import IDEC
+            from deepclust_base.datasets.loader import load_data_bundle
+            print('All imports OK')
+          "
+
+      - name: Config YAML validation
+        run: |
+          python -c "
+            import yaml
+            import glob
+            for f in glob.glob('configs/*.yaml'):
+                with open(f) as fp:
+                    yaml.safe_load(fp)
+                print(f'OK: {f}')
+          "
+
+  quick-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Download MNIST subset
+        run: |
+          # Create a minimal synthetic dataset for smoke test
+          python -c "
+import scipy.io
+import numpy as np
+import os
+os.makedirs('data', exist_ok=True)
+np.random.seed(42)
+N, d, K = 1000, 64, 10
+X = np.random.randn(N, d).astype(np.float32)
+y = np.random.randint(0, K, size=N).astype(np.int64)
+scipy.io.savemat('data/test.mat', {'data': X, 'label': y})
+print(f'Created test dataset: {N} samples, {d} dims')
+          "
+
+      - name: Run quick smoke test (DEC, 1-layer, 10 iters)
+        run: |
+          python -c "
+import yaml, os, sys
+sys.path.insert(0, os.getcwd())
+
+# Override config for smoke test
+cfg = {
+    'seed': 42,
+    'dataset': {
+        'name': 'test', 'source': 'mat',
+        'path': 'data/test.mat', 'project_root': '.'
+    },
+    'model': {
+        'name': 'dec',
+        'hidden_dims': [32, 16],
+        'embed_dim': 8,
+        'num_clusters': 10,
+        'gamma': 0.1
+    },
+    'optimizer': {'weight_decay': 0.0},
+    'trainer': {
+        'layer_pretrain_iters': 10,
+        'layer_pretrain_lr': 0.1,
+        'layer_pretrain_batch_size': 128,
+        'ae_finetune_iters': 10,
+        'ae_finetune_lr': 0.1,
+        'ae_finetune_decay_iters': 5,
+        'ae_finetune_momentum': 0.9,
+        'clustering_epochs': 5,
+        'clustering_lr': 0.01,
+        'target_update_interval': 1,
+        'stop_tol': 0.01,
+        'eval_every': 1
+    },
+    'output': {'dir': 'outputs/smoke_test'}
+}
+
+import yaml as _yaml
+os.makedirs('configs', exist_ok=True)
+with open('configs/smoke_test.yaml', 'w') as f:
+    _yaml.dump(cfg, f)
+print('Smoke test config created')
+"
+          python scripts/train_dec_idec.py --config configs/smoke_test.yaml
+          echo "Smoke test completed"

@@ -1,0 +1,41 @@
+# DEC 快速验证配置
+# 目的：验证代码能跑通，不追求精度
+# 预计时间：~5-10 分钟（CPU）
+# 网络：[256, 128, 64] 替代论文 [500, 500, 2000]
+
+seed: 42
+
+dataset:
+  name: mnist
+  source: mat
+  path: 深度聚类合作/dataset/mnist_all.mat
+  project_root: /home/zjl/clauter
+
+model:
+  name: dec
+  hidden_dims: [256, 128, 64]    # 缩小网络，加速验证
+  embed_dim: 10
+  num_clusters: 10
+  dropout: 0.2
+
+optimizer:
+  weight_decay: 0.0
+
+trainer:
+  # ========== 快速验证参数 ==========
+  layer_pretrain_iters: 500         # 论文 50000，缩减 100 倍
+  layer_pretrain_lr: 0.1
+  layer_pretrain_batch_size: 256
+  ae_finetune_iters: 1000          # 论文 100000，缩减 100 倍
+  ae_finetune_lr: 0.1
+  ae_finetune_decay_iters: 500
+  ae_finetune_momentum: 0.9
+  clustering_epochs: 50
+  clustering_lr: 0.01
+  target_update_interval: 1
+  stop_tol: 0.01                 # 收敛阈值放宽到 1%（加速）
+  eval_every: 1
+  # ========== 快速验证参数 end ==========
+
+output:
+  dir: outputs/dec_quick

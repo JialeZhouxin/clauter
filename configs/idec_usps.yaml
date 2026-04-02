@@ -1,0 +1,46 @@
+# IDEC on USPS
+# 论文参考: Guo et al., IJCAI 2017
+# 论文 USPS ACC=76.05%, NMI=78.46%
+
+seed: 42
+
+dataset:
+  name: usps
+  source: mat
+  path: 深度聚类合作/dataset/usps_all.mat
+  project_root: /home/zjl/clauter
+
+model:
+  name: idec
+  hidden_dims: [500, 500, 2000]
+  embed_dim: 10
+  num_clusters: 10
+  gamma: 0.1
+
+optimizer:
+  weight_decay: 0.0
+
+trainer:
+  # Phase 1: 逐层预训练 - 论文原文: 50000 iterations per layer
+  layer_pretrain_iters: 50000
+  layer_pretrain_batch_size: 256
+  layer_pretrain_lr: 0.1
+
+  # Phase 2: 端到端精调 - 论文原文: SGD(USPS), lr=0.1, momentum=0.99
+  ae_finetune_iters: 100000
+  ae_finetune_lr: 0.1
+  ae_finetune_decay_iters: 20000
+  ae_finetune_momentum: 0.99       # IDEC 论文 USPS: momentum=0.99
+  ae_finetune_batch_size: 256
+
+  # Phase 3: 聚类微调 - 论文原文: SGD lr=0.1, momentum=0.99, T=30 (USPS)
+  clustering_epochs: 200
+  clustering_lr: 0.1              # IDEC 论文 USPS: SGD lr=0.1
+  clustering_optimizer: sgd
+  clustering_momentum: 0.99
+  target_update_interval: 30     # 论文 T=30 (USPS)
+  stop_tol: 0.001
+  eval_every: 1
+
+output:
+  dir: outputs/idec_usps

@@ -1,0 +1,42 @@
+# IDEC 快速验证配置
+# 目的：验证代码能跑通，不追求精度
+# 预计时间：~5-10 分钟（CPU）
+# 网络：[256, 128, 64] 替代论文 [500, 500, 2000]
+
+seed: 42
+
+dataset:
+  name: mnist
+  source: mat
+  path: 深度聚类合作/dataset/mnist_all.mat
+  project_root: /home/zjl/clauter
+
+model:
+  name: idec
+  hidden_dims: [256, 128, 64]    # 缩小网络
+  embed_dim: 10
+  num_clusters: 10
+  gamma: 0.1                     # IDEC 核心参数（论文推荐值）
+
+optimizer:
+  weight_decay: 0.0
+
+trainer:
+  # ========== 快速验证参数 ==========
+  layer_pretrain_iters: 500
+  layer_pretrain_lr: 0.1
+  layer_pretrain_batch_size: 256
+  ae_finetune_iters: 1000
+  ae_finetune_lr: 0.001           # IDEC MNIST 论文用 Adam lr=0.001
+  ae_finetune_decay_iters: 500
+  clustering_epochs: 50
+  clustering_lr: 0.001             # IDEC MNIST 论文用 Adam lr=0.001
+  clustering_optimizer: adam
+  clustering_momentum: 0.9
+  target_update_interval: 10       # 每 10 步更新一次（加速）
+  stop_tol: 0.01
+  eval_every: 1
+  # ========== 快速验证参数 end ==========
+
+output:
+  dir: outputs/idec_quick

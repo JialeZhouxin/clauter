@@ -1,0 +1,40 @@
+seed: 42
+device: cpu
+
+dataset:
+  source: synthetic
+  name: synthetic
+  num_nodes: 600
+  num_features: 64
+  num_clusters: 6
+
+preprocess:
+  normalize_features: false
+  normalize_adjacency: true
+  add_self_loops: true
+  adj_normalize_method: l1
+  use_cache: true
+
+model:
+  name: daegc
+  hidden_dim: 128
+  embed_dim: 32
+  num_clusters: 6
+  dropout: 0.0
+  alpha: 0.2
+  v: 1.0
+
+optimizer:
+  pretrain_lr: 0.005
+  finetune_lr: 0.0001
+  weight_decay: 0.005
+
+trainer:
+  pretrain_epochs: 30
+  finetune_epochs: 80
+  eval_every: 10
+  w_kl: 10.0
+
+output:
+  dir: outputs/daegc_synthetic
+  cache_dir: outputs/cache

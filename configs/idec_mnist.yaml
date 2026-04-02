@@ -1,0 +1,45 @@
+# IDEC on MNIST
+# 论文参考: Guo et al., IJCAI 2017
+# 论文 ACC=88.06%, NMI=86.72%
+
+seed: 42
+
+dataset:
+  name: mnist
+  source: mat
+  path: 深度聚类合作/dataset/mnist_all.mat
+  project_root: /home/zjl/clauter
+
+model:
+  name: idec
+  hidden_dims: [500, 500, 2000]   # d-500-500-2000-10
+  embed_dim: 10
+  num_clusters: 10
+  gamma: 0.1                      # 论文推荐 0.1 (grid search 结果)
+
+optimizer:
+  weight_decay: 0.0
+
+trainer:
+  # Phase 1: 逐层预训练 - 论文原文: 50000 iterations per layer
+  layer_pretrain_iters: 50000
+  layer_pretrain_batch_size: 256
+  layer_pretrain_lr: 0.1
+
+  # Phase 2: 端到端精调 - 论文原文: 100000 iterations, Adam(MNIST), lr=0.001
+  # 注: IDEC 论文 MNIST 用 Adam, lr=0.001; 但 Phase2 仍是 AE 预训练
+  ae_finetune_iters: 100000
+  ae_finetune_lr: 0.001           # IDEC 论文 MNIST: Adam lr=0.001
+  ae_finetune_decay_iters: 20000
+  ae_finetune_momentum: 0.9
+  ae_finetune_batch_size: 256
+
+  # Phase 3: 聚类微调 - 论文原文: Adam lr=0.001, T=140 (MNIST)
+  clustering_epochs: 200
+  clustering_lr: 0.001             # 论文 Adam lr=0.001
+  target_update_interval: 140     # 论文 T=140 (MNIST)
+  stop_tol: 0.001                  # tol=0.1%
+  eval_every: 1
+
+output:
+  dir: outputs/idec_mnist

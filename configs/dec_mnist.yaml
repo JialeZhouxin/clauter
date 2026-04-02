@@ -1,0 +1,44 @@
+# DEC on MNIST
+# 论文参考: Xie et al., ICML 2016
+# 论文 ACC=84.30%, NMI=83.72%
+
+seed: 42
+
+dataset:
+  name: mnist
+  source: mat
+  path: 深度聚类合作/dataset/mnist_all.mat
+  project_root: /home/zjl/clauter
+
+model:
+  name: dec
+  hidden_dims: [500, 500, 2000]   # d-500-500-2000-10 (d=784 for MNIST)
+  embed_dim: 10
+  num_clusters: 10
+  dropout: 0.2                     # 论文逐层预训练 dropout=0.2
+
+optimizer:
+  weight_decay: 0.0               # 论文 weight_decay=0
+
+trainer:
+  # Phase 1: 逐层预训练 - 论文原文: 50000 iterations per layer
+  layer_pretrain_iters: 50000
+  layer_pretrain_batch_size: 256
+  layer_pretrain_lr: 0.1           # 论文 0.1
+
+  # Phase 2: 端到端精调 - 论文原文: 100000 iterations, SGD, lr=0.1, 每20000衰减10x
+  ae_finetune_iters: 100000
+  ae_finetune_lr: 0.1             # 论文初始 lr=0.1
+  ae_finetune_decay_iters: 20000 # 每 20000 iterations 衰减 10x
+  ae_finetune_momentum: 0.9       # 论文 momentum=0.9
+  ae_finetune_batch_size: 256
+
+  # Phase 3: 聚类微调 - 论文原文: 固定 lr=0.01
+  clustering_epochs: 100
+  clustering_lr: 0.01              # 论文固定 lr=0.01
+  target_update_interval: 1        # 每 epoch 更新一次 P
+  stop_tol: 0.001                  # tol=0.1%
+  eval_every: 1
+
+output:
+  dir: outputs/dec_mnist

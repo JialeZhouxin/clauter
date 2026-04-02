@@ -1,0 +1,45 @@
+[project]
+name = "clauter"
+version = "0.1.0"
+description = "PyTorch implementation of DEC and IDEC deep clustering algorithms"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+keywords = ["deep-clustering", "dec", "idec", "pytorch", "unsupervised-learning"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "torch>=2.0.0",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "scikit-learn>=1.3.0",
+    "pyyaml>=6.0",
+    "munkres>=3.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/clauter"
+Repository = "https://github.com/yourusername/clauter"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["deepclust_base*", "scripts*"]

@@ -1,0 +1,44 @@
+# DEC on USPS
+# 论文参考: Xie et al., ICML 2016
+# 论文 ACC=84.30% (MNIST), REUTERS-10K ACC=72.17%
+
+seed: 42
+
+dataset:
+  name: usps
+  source: mat
+  path: 深度聚类合作/dataset/usps_all.mat
+  project_root: /home/zjl/clauter
+
+model:
+  name: dec
+  hidden_dims: [500, 500, 2000]   # d-500-500-2000-10 (d=256 for USPS)
+  embed_dim: 10
+  num_clusters: 10
+  dropout: 0.2
+
+optimizer:
+  weight_decay: 0.0
+
+trainer:
+  # Phase 1: 逐层预训练 - 论文原文: 50000 iterations per layer
+  layer_pretrain_iters: 50000
+  layer_pretrain_batch_size: 256
+  layer_pretrain_lr: 0.1
+
+  # Phase 2: 端到端精调 - 论文原文: 100000 iterations, SGD, lr=0.1, 每20000衰减10x
+  ae_finetune_iters: 100000
+  ae_finetune_lr: 0.1
+  ae_finetune_decay_iters: 20000
+  ae_finetune_momentum: 0.9
+  ae_finetune_batch_size: 256
+
+  # Phase 3: 聚类微调
+  clustering_epochs: 100
+  clustering_lr: 0.01
+  target_update_interval: 1
+  stop_tol: 0.001
+  eval_every: 1
+
+output:
+  dir: outputs/dec_usps

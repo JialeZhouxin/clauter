@@ -1,0 +1,45 @@
+# ===== 训练产物 =====
+outputs/
+*.ckpt
+*.pkl
+*.csv
+*.json
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# ===== 虚拟环境 =====
+.venv/
+venv/
+ENV/
+env/
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ===== 数据集（用户自己准备）=====
+深度聚类合作/
+*.mat
+data/
+
+# ===== 系统 =====
+*.log
+.trash/
+
+# Embedded repos (large, managed separately)
+SCGC/
+SDCN/

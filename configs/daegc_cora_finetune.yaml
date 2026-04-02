@@ -1,0 +1,41 @@
+# DAEGC 聚类微调配置 (按论文 IJCAI 2019)
+# 阶段2: 聚类微调 (加载预训练模型)
+
+seed: 42
+device: cpu
+
+dataset:
+  source: npz
+  name: cora
+  path: data/cora/cora.npz
+
+preprocess:
+  normalize_features: false   # GitHub 实现没有对特征归一化
+  normalize_adjacency: true
+  add_self_loops: true
+  adj_normalize_method: l1
+  use_cache: true
+
+model:
+  name: daegc
+  hidden_size: 256            # 与预训练一致
+  embedding_size: 16           # 与预训练一致 (论文默认)
+  num_clusters: 7              # Cora 有 7 类
+  alpha: 0.2                   # leaky_relu 斜率
+  v: 1.0                      # DEC 的 v 参数
+  dropout: 0.0
+  pretrain_path: outputs/daegc_pretrain_cora/best_model.pkl  # 预训练模型路径 (相对于项目根目录)
+
+optimizer:
+  lr: 0.0001                  # 论文微调 lr (比预训练小 10 倍)
+  weight_decay: 0.005         # 5e-3
+
+trainer:
+  epochs: 100                 # 论文微调 100 epochs
+  eval_every: 1
+  update_interval: 1          # 每 1 epoch 更新目标分布
+  w_kl: 10.0                  # KL loss 权重
+
+output:
+  dir: outputs/daegc_finetune_cora  # 相对于项目根目录
+  cache_dir: outputs/cache
